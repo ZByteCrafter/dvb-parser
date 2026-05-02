@@ -2,7 +2,7 @@
 DVB Parser - DVB protocol parser for satellite signal analysis
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from dvb_parser.bbframe.parser import BBFrameParser
 from dvb_parser.bbframe.models import BBFrame, BBFrameHeader, StreamType
@@ -11,19 +11,48 @@ from dvb_parser.ts.models import TSPacket, AdaptationField
 from dvb_parser.psi.pat import PATParser
 from dvb_parser.psi.pmt import PMTParser
 from dvb_parser.psi.models import PAT, PMT, PATEntry, PMTStream
+from dvb_parser.si.sdt import SDTParser
+from dvb_parser.si.nit import NITParser
+from dvb_parser.si.models import SDT, SDTService, NIT, NITTransportStream
+from dvb_parser.pes.parser import PESParser
+from dvb_parser.pes.models import (
+    PESPacket, PESHeader, ESFrameHeader,
+    H264NALUHeader, H265NALUHeader,
+    AACADTSHeader, MP3FrameHeader, AC3SyncHeader
+)
 
 __all__ = [
+    # BBFrame
     "BBFrameParser",
     "BBFrame",
     "BBFrameHeader",
     "StreamType",
+    # MPEG-TS
     "TSPacketParser",
     "TSPacket",
     "AdaptationField",
+    # PSI
     "PATParser",
     "PMTParser",
     "PAT",
     "PMT",
     "PATEntry",
     "PMTStream",
+    # SI
+    "SDTParser",
+    "NITParser",
+    "SDT",
+    "SDTService",
+    "NIT",
+    "NITTransportStream",
+    # PES
+    "PESParser",
+    "PESPacket",
+    "PESHeader",
+    "ESFrameHeader",
+    "H264NALUHeader",
+    "H265NALUHeader",
+    "AACADTSHeader",
+    "MP3FrameHeader",
+    "AC3SyncHeader",
 ]
