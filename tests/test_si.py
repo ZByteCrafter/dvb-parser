@@ -1,5 +1,6 @@
 import pytest
 from dvb_parser.si.sdt import SDTParser
+from dvb_parser.si.nit import NITParser
 
 
 class TestSDTParser:
@@ -174,3 +175,51 @@ class TestSDTParser:
         assert sdt.services[0].service_id == 42
         assert sdt.services[0].provider_name == "Provider"
         assert sdt.services[0].service_name == "Channel"
+
+
+class TestNITParser:
+    def test_parse_valid_nit(self):
+        """测试解析有效的 NIT"""
+        # 构造 NIT section
+        section_data = bytes([
+            0x40,                    # table_id (current network)
+            0b10110000, 0x27,        # syntax_indicator=1, length=39
+            0x00, 0x01,              # network_id
+            0b11000001,              # version=1, current_next=1
+            0x00,                    # section_number
+            0x00,                    # last_section_number
+            # Network descriptors
+            0b11110000, 0x07,        # descriptors_length=7
+            # Network name descriptor
+            0x40, 0x05,              # descriptor_tag=0x40, length=5
+            0x53, 0x61, 0x74, 0x65, 0x6C,  # "Satel"
+            # Transport stream loop
+            0b11110000, 0x11,        # ts_loop_length=17
+            # Transport stream entry
+            0x00, 0x01,              # transport_stream_id
+            0x00, 0x01,              # original_network_id
+            0b11110000, 0x0D,        # descriptors_length=13
+            # Satellite delivery system descriptor
+            0x43, 0x0B,              # descriptor_tag=0x43, length=11
+            0x01, 0x18, 0x05, 0x68,  # frequency (BCD: 11805.68 MHz)
+            0x00, 0x00,              # orbital position
+            0b11000000,              # polarization (horizontal)
+            0b00000010,              # modulation (8PSK)
+            0x02, 0x50, 0x00,        # symbol_rate (BCD: 25000 ksym/s)
+            # CRC-32 placeholder
+            0x00, 0x00, 0x00, 0x00
+        ])
+
+        from dvb_parser.utils.crc import crc32
+        crc_value = crc32(section_data[:-4])
+        section_data = section_data[:-4] + crc_value.to_bytes(4, 'big')
+
+        nit = NITParser.parse(section_data)
+
+        assert nit.table_id == 0x40
+        assert nit.network_id == 1
+        assert nit.network_name == "Satel"
+        assert len(nit.transport_streams) == 1
+        assert nit.transport_streams[0].transport_stream_id == 1
+        assert nit.transport_streams[0].frequency == 11805680000  # Hz
+        assert nit.transport_streams[0].symbol_rate == 25000000  # sym/s
