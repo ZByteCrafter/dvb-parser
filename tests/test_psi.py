@@ -1,5 +1,6 @@
 import pytest
 from dvb_parser.psi.pat import PATParser
+from dvb_parser.psi.pmt import PMTParser
 
 
 class TestPATParser:
@@ -152,3 +153,42 @@ class TestPATParser:
 
         assert 0 in pat.programs
         assert pat.programs[0] == 0x1000
+
+
+class TestPMTParser:
+    def test_parse_valid_pmt(self):
+        """测试解析有效的 PMT"""
+        # 构造 PMT section
+        # table_id=0x02, section_syntax_indicator=1, section_length=22
+        # program_number=1, version_number=1, current_next_indicator=1
+        # section_number=0, last_section_number=0
+        # PCR_PID=0x100, program_info_length=0
+        # stream_type=0x1B (H.264), PID=0x101
+        # CRC-32 placeholder
+        section_data = bytes([
+            0x02,                    # table_id
+            0b10110000, 0x16,        # syntax_indicator=1, length=22
+            0x00, 0x01,              # program_number=1
+            0b11000001,              # version=1, current_next=1
+            0x00,                    # section_number
+            0x00,                    # last_section_number
+            0b11100001, 0x00,        # PCR_PID=0x100
+            0b11110000, 0x00,        # program_info_length=0
+            0x1B,                    # stream_type=H.264
+            0b11100001, 0x01,        # PID=0x101
+            0b11110000, 0x00,        # ES_info_length=0
+            0x00, 0x00, 0x00, 0x00   # CRC-32 placeholder
+        ])
+        
+        from dvb_parser.utils.crc import crc32
+        crc_value = crc32(section_data[:-4])
+        section_data = section_data[:-4] + crc_value.to_bytes(4, 'big')
+        
+        pmt = PMTParser.parse(section_data)
+        
+        assert pmt.table_id == 0x02
+        assert pmt.program_number == 1
+        assert pmt.pcr_pid == 0x100
+        assert len(pmt.streams) == 1
+        assert pmt.streams[0].stream_type == 0x1B
+        assert pmt.streams[0].pid == 0x101
