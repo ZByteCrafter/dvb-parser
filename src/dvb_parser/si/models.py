@@ -1,5 +1,5 @@
 """
-SI data models (SDT, NIT, EIT)
+SI data models (SDT, NIT, EIT, TDT, TOT)
 """
 
 from dataclasses import dataclass
@@ -86,3 +86,18 @@ class EIT:
     section_number: int
     last_section_number: int
     events: List[EITEvent]
+
+
+@dataclass
+class TDT:
+    """Time and Date Table"""
+    table_id: int
+    utc_time: int  # UTC timestamp (seconds since midnight)
+
+
+@dataclass
+class TOT:
+    """Time Offset Table"""
+    table_id: int
+    utc_time: int  # UTC timestamp (seconds since midnight)
+    descriptors: List[bytes]
