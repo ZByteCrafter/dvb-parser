@@ -1,1 +1,1 @@
-"""Transport Stream subpackage for MPEG-TS parsing."""
+"""MPEG-TS parser module"""
