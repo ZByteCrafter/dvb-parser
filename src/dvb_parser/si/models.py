@@ -1,5 +1,5 @@
 """
-SI data models (SDT, NIT)
+SI data models (SDT, NIT, EIT)
 """
 
 from dataclasses import dataclass
@@ -58,3 +58,31 @@ class NIT:
     last_section_number: int
     network_name: str
     transport_streams: List[NITTransportStream]
+
+
+@dataclass
+class EITEvent:
+    """EIT event entry"""
+    event_id: int
+    start_time: int  # UTC timestamp (seconds since midnight)
+    duration: int  # seconds
+    running_status: int
+    free_ca_mode: bool
+    descriptors: List[bytes]
+    # Fields parsed from descriptors
+    event_name: str = ""
+    event_description: str = ""
+
+
+@dataclass
+class EIT:
+    """Event Information Table"""
+    table_id: int
+    service_id: int
+    transport_stream_id: int
+    original_network_id: int
+    version_number: int
+    current_next_indicator: bool
+    section_number: int
+    last_section_number: int
+    events: List[EITEvent]
