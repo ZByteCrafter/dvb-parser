@@ -167,3 +167,60 @@ class TestIntegrationP1:
         assert nit.network_name == "Sat"
         assert nit.transport_streams[0].frequency == 11805680000  # Hz
         assert nit.transport_streams[0].symbol_rate == 25000000  # sym/s
+
+
+from dvb_parser.gse.parser import GSEParser
+from dvb_parser.mpe.parser import MPEParser
+from dvb_parser.ule.parser import ULEParser
+from dvb_parser.nip.parser import NIPParser
+from dvb_parser.si.eit import EITParser
+from dvb_parser.si.tdt import TDTParser
+
+
+class TestIntegrationP2:
+    def test_gse_with_bbframe(self):
+        """测试 GSE 与 BBFrame 关联"""
+        # 构造 GSE 数据
+        # Start=1, End=1, Label Type=0, Protocol Type=0x0800 (IPv4)
+        # Total Length=22 (header 6 + payload 16)
+        gse_data = bytes([
+            0b11000000, 0x00, 0x08, 0x00, 0x00, 0x16,
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+            0x00, 0x00, 0x00, 0x00  # CRC-32 placeholder
+        ])
+
+        from dvb_parser.utils.crc import crc32
+        crc_value = crc32(gse_data[:-4])
+        gse_data = gse_data[:-4] + crc_value.to_bytes(4, 'big')
+
+        gse = GSEParser.parse(gse_data)
+
+        assert gse.is_ipv4 == True
+        assert gse.is_complete == True
+
+    def test_eit_with_sdt(self):
+        """测试 EIT 与 SDT 关联（事件对应节目）"""
+        # 构造 EIT 数据
+        eit_data = bytes([
+            0x4E, 0b10110000, 0x1A,
+            0x00, 0x01,  # service_id=1
+            0b11000001,  # version=1
+            0x00, 0x01, 0x00, 0x01,  # ts_id, original_network_id
+            0x00, 0x00,  # section numbers
+            0x00, 0x01,  # event_id
+            0x58, 0x00,  # MJD
+            0x12, 0x00, 0x00,  # 12:00:00
+            0x01, 0x30, 0x00,  # 1h30m
+            0b00000001, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00  # CRC-32
+        ])
+
+        from dvb_parser.utils.crc import crc32
+        crc_value = crc32(eit_data[:-4])
+        eit_data = eit_data[:-4] + crc_value.to_bytes(4, 'big')
+
+        eit = EITParser.parse(eit_data)
+
+        assert eit.service_id == 1  # 对应 SDT.service_id
+        assert len(eit.events) == 1
