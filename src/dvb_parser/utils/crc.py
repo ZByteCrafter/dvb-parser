@@ -28,7 +28,7 @@ def crc8(data: bytes, polynomial: int = 0xD5) -> int:
 
 def crc32(data: bytes) -> int:
     """
-    Calculate CRC-32 checksum (CRC-32/MPEG-2)
+    Calculate CRC-32 checksum (CRC-32/ISO-HDLC, reflected)
 
     Args:
         data: Input data
