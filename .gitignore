@@ -9,3 +9,22 @@ build/
 .venv/
 venv/
 .env
+
+# Testing / Coverage
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+
+# Type checking / Linting
+.mypy_cache/
+.ruff_cache/
+
+# Compiled extensions
+*.so
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
