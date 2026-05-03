@@ -85,8 +85,18 @@ class TSPacketParser:
         Returns:
             Tuple of (AdaptationField, new_offset)
         """
+        if offset >= len(data):
+            return None, offset
+
         length = data[offset]
         if length == 0:
+            return None, offset + 1
+
+        end_offset = offset + 1 + length
+        if end_offset > len(data):
+            return None, end_offset
+
+        if offset + 1 >= len(data):
             return None, offset + 1
 
         flags = data[offset + 1]
@@ -100,30 +110,36 @@ class TSPacketParser:
         extension = bool(flags & 0x01)
 
         current_offset = offset + 2
+        remaining = end_offset - current_offset
 
         pcr = None
-        if pcr_flag and length >= 6:
+        if pcr_flag and remaining >= 6:
             pcr_bytes = data[current_offset : current_offset + 6]
             pcr = int.from_bytes(pcr_bytes, "big")
             current_offset += 6
+            remaining = end_offset - current_offset
 
         opcr = None
-        if opcr_flag and length >= 6:
+        if opcr_flag and remaining >= 6:
             opcr_bytes = data[current_offset : current_offset + 6]
             opcr = int.from_bytes(opcr_bytes, "big")
             current_offset += 6
+            remaining = end_offset - current_offset
 
         splice_countdown = None
-        if splicing:
+        if splicing and remaining >= 1:
             splice_countdown = data[current_offset]
             current_offset += 1
+            remaining = end_offset - current_offset
 
         private = None
-        if private_data:
+        if private_data and remaining >= 1:
             private_length = data[current_offset]
             current_offset += 1
-            private = data[current_offset : current_offset + private_length]
-            current_offset += private_length
+            remaining = end_offset - current_offset
+            if remaining >= private_length:
+                private = data[current_offset : current_offset + private_length]
+                current_offset += private_length
 
         adaptation_field = AdaptationField(
             length=length,

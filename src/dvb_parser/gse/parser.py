@@ -53,11 +53,24 @@ class GSEParser:
         # 解析 Label（如果存在）
         label = None
         if label_type == 1:  # 6 字节 Label
+            if len(data) - current_offset < 6:
+                raise ValueError("数据不足，无法读取 6 字节 Label")
             label = data[current_offset:current_offset + 6]
             current_offset += 6
         elif label_type == 2:  # 3 字节 Label
+            if len(data) - current_offset < 3:
+                raise ValueError("数据不足，无法读取 3 字节 Label")
             label = data[current_offset:current_offset + 3]
             current_offset += 3
+        elif label_type == 3:  # Label Extension
+            if len(data) - current_offset < 1:
+                raise ValueError("数据不足，无法读取 Label Extension 长度")
+            ext_length = data[current_offset]
+            current_offset += 1
+            if len(data) - current_offset < ext_length:
+                raise ValueError("数据不足，无法读取 Label Extension 数据")
+            label = data[current_offset:current_offset + ext_length]
+            current_offset += ext_length
         
         # 计算 payload 长度
         # total_length = header + label + payload (excluding CRC)
@@ -72,6 +85,10 @@ class GSEParser:
         
         if payload_length < 0:
             raise ValueError("无效的包长度")
+        
+        # 验证 payload 长度不超过实际数据
+        if current_offset + payload_length > len(data):
+            raise ValueError("数据不足，无法读取 payload")
         
         # 提取 payload
         payload = data[current_offset:current_offset + payload_length]

@@ -11,7 +11,7 @@ class GSEPacket:
     """GSE 包"""
     start: bool
     end: bool
-    label_type: int  # 0=无, 1=6字节, 2=3字节, 3=未使用
+    label_type: int  # 0=无, 1=6字节, 2=3字节, 3=Label Extension
     protocol_type: int
     total_length: Optional[int]
     label: Optional[bytes]
