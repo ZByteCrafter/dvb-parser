@@ -62,6 +62,10 @@ class PESParser:
             flags = data[current_offset]
             pts_dts_flags = (flags >> 6) & 0x03
             
+            # 读取 PES_header_data_length
+            optional_fields_length = data[current_offset + 1]
+            current_offset += 2  # 跳过 flags 和 length 字节
+            
             # 解析 PTS
             if pts_dts_flags & 0x02:  # PTS present
                 pts = PESParser._parse_pts(data, current_offset)
@@ -72,9 +76,12 @@ class PESParser:
                 dts = PESParser._parse_pts(data, current_offset)
                 current_offset += 5
             
-            # 跳过其他可选字段
-            optional_fields_length = data[current_offset]
-            current_offset += 1 + optional_fields_length
+            # 跳过剩余可选字段
+            # optional_fields_length 包含 PTS/DTS 的字节数
+            pts_dts_bytes = (5 if pts is not None else 0) + (5 if dts is not None else 0)
+            remaining = optional_fields_length - pts_dts_bytes
+            if remaining > 0:
+                current_offset += remaining
         
         # 提取 payload
         payload = data[current_offset:offset + 6 + pes_length if pes_length > 0 else len(data)]
