@@ -106,11 +106,12 @@ class PMTParser:
         
         # Verify CRC-32
         section_data = data[offset:offset + 3 + section_length]
-        if len(section_data) >= 4:
-            expected_crc = struct.unpack('>I', section_data[-4:])[0]
-            calculated_crc = crc32(section_data[:-4])
-            if expected_crc != calculated_crc:
-                raise ValueError("CRC-32 校验失败")
+        if len(section_data) < 3 + section_length:
+            raise ValueError("数据截断，无法完成 CRC-32 校验")
+        expected_crc = struct.unpack('>I', section_data[-4:])[0]
+        calculated_crc = crc32(section_data[:-4])
+        if expected_crc != calculated_crc:
+            raise ValueError("CRC-32 校验失败")
         
         return PMT(
             table_id=table_id,

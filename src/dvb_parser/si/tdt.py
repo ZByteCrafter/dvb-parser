@@ -79,6 +79,8 @@ class TDTParser:
                 descriptors=descriptors
             )
 
+        raise ValueError("Not a TDT or TOT table")
+
     @staticmethod
     def _mjd_bcd_to_timestamp(mjd: int, bcd_time: bytes) -> int:
         """MJD + BCD time to UTC timestamp (seconds since midnight)"""

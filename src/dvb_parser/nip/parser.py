@@ -42,7 +42,7 @@ class NIPParser:
         Raises:
             ValueError: 数据无效
         """
-        if len(data) - offset < 5:
+        if len(data) - offset < 3:
             raise ValueError("数据不足")
 
         synchronous = bool(data[offset])

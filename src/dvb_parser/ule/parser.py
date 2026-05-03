@@ -71,7 +71,9 @@ class ULEParser:
 
         if length_or_type >= 1536:
             # Type 模式
-            payload_length = len(data) - offset - (current_offset - offset) - crc_length
+            if current_offset + crc_length > len(data):
+                raise ValueError("Type 模式数据不足，无法读取 CRC-32")
+            payload_length = len(data) - current_offset - crc_length
         else:
             # Length 模式: Length = MAC(6) + Payload + CRC(4)
             payload_length = length_or_type - (current_offset - offset - 2) - crc_length

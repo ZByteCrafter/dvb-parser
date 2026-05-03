@@ -68,11 +68,15 @@ class PESParser:
             
             # 解析 PTS
             if pts_dts_flags & 0x02:  # PTS present
+                if current_offset + 5 > len(data):
+                    raise ValueError("数据不足，无法解析 PTS")
                 pts = PESParser._parse_pts(data, current_offset)
                 current_offset += 5
             
             # 解析 DTS
             if pts_dts_flags & 0x01:  # DTS present
+                if current_offset + 5 > len(data):
+                    raise ValueError("数据不足，无法解析 DTS")
                 dts = PESParser._parse_pts(data, current_offset)
                 current_offset += 5
             
@@ -165,7 +169,7 @@ class PESParser:
             return None
         
         # 搜索 ADTS 同步字 (0xFFF)
-        for i in range(len(payload) - 7):
+        for i in range(len(payload) - 6):
             if payload[i] == 0xFF and (payload[i + 1] & 0xF0) == 0xF0:
                 # 解析 ADTS 头
                 profile = ((payload[i + 2] >> 6) & 0x03) + 1
@@ -195,7 +199,7 @@ class PESParser:
             return None
         
         # 搜索 MP3 同步字 (0xFFE0)
-        for i in range(len(payload) - 4):
+        for i in range(len(payload) - 3):
             if payload[i] == 0xFF and (payload[i + 1] & 0xE0) == 0xE0:
                 # 解析 MP3 帧头
                 version = (payload[i + 1] >> 3) & 0x03
@@ -231,7 +235,7 @@ class PESParser:
             return None
         
         # 搜索 AC3 同步字 (0x0B77)
-        for i in range(len(payload) - 5):
+        for i in range(len(payload) - 4):
             if payload[i] == 0x0B and payload[i + 1] == 0x77:
                 # 解析 AC3 头
                 sample_rate_idx = (payload[i + 4] >> 6) & 0x03

@@ -167,7 +167,7 @@ class TestPMTParser:
         # CRC-32 placeholder
         section_data = bytes([
             0x02,                    # table_id
-            0b10110000, 0x16,        # syntax_indicator=1, length=22
+            0b10110000, 0x12,        # syntax_indicator=1, length=18
             0x00, 0x01,              # program_number=1
             0b11000001,              # version=1, current_next=1
             0x00,                    # section_number
