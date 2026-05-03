@@ -76,6 +76,9 @@ class NIPParser:
         download_id = struct.unpack('>I', data[offset:offset + 4])[0]
         block_size = struct.unpack('>H', data[offset + 4:offset + 6])[0]
 
+        if block_size == 0:
+            raise ValueError("block_size cannot be 0")
+
         blocks = []
         current_offset = offset + 6
 

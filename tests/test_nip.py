@@ -80,3 +80,14 @@ class TestNIPParser:
 
         with pytest.raises(ValueError, match="数据不足"):
             NIPParser.parse_carousel(data)
+
+    def test_parse_carousel_zero_block_size(self):
+        """测试数据循环解析 - block_size为0"""
+        carousel_data = bytes([
+            0x00, 0x00, 0x00, 0x01,  # download_id=1
+            0x00, 0x00,              # block_size=0
+            0xAA, 0xBB               # 数据
+        ])
+
+        with pytest.raises(ValueError, match="block_size cannot be 0"):
+            NIPParser.parse_carousel(carousel_data)
