@@ -55,8 +55,8 @@ class BBFrameHeader:
     
     @property
     def scrambling_mode(self) -> ScramblingMode:
-        """Get scrambling mode from MATYPE"""
-        return ScramblingMode((self.matype[0] >> 4) & 0x03)
+        """Get scrambling mode from MATYPE byte 1 (bits 7-6)"""
+        return ScramblingMode((self.matype[1] >> 6) & 0x03) if len(self.matype) > 1 else ScramblingMode.NO_SCRAMBLING
     
     @property
     def isi(self) -> int:
@@ -70,8 +70,8 @@ class BBFrameHeader:
     
     @property
     def roll_off(self) -> int:
-        """Get roll-off factor"""
-        return (self.matype[0] >> 2) & 0x03
+        """Get roll-off factor (bits 5-4 of MATYPE byte 0)"""
+        return (self.matype[0] >> 4) & 0x03
 
 
 @dataclass

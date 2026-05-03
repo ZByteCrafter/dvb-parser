@@ -14,6 +14,8 @@ def crc8(data: bytes, polynomial: int = 0xD5) -> int:
     Returns:
         CRC-8 value
     """
+    if not data:
+        return 0
     crc = 0
     for byte in data:
         crc ^= byte
@@ -36,6 +38,8 @@ def crc32(data: bytes) -> int:
     Returns:
         CRC-32 value
     """
+    if not data:
+        return 0
     crc = 0xFFFFFFFF
     for byte in data:
         crc ^= byte

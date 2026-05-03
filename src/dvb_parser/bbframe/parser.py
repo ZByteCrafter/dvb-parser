@@ -1,9 +1,13 @@
 """BBFrame parser."""
 
+import logging
 import struct
+from typing import List
 
 from dvb_parser.bbframe.models import BBFrame, BBFrameHeader
 from dvb_parser.utils.crc import crc8
+
+logger = logging.getLogger(__name__)
 
 
 class BBFrameParser:
@@ -51,6 +55,8 @@ class BBFrameParser:
 
         data_start = offset + BBFrameParser.HEADER_SIZE
         data_end = data_start + (dfl // 8)
+        if data_end > len(data):
+            raise ValueError("数据截断：帧数据不完整")
         data_field = data[data_start:data_end]
         padding = data[data_end:]
 
@@ -61,7 +67,7 @@ class BBFrameParser:
         )
 
     @staticmethod
-    def parse_multiple(data: bytes) -> list:
+    def parse_multiple(data: bytes) -> List[BBFrame]:
         """
         Parse multiple BBFrames from data.
 
@@ -79,7 +85,8 @@ class BBFrameParser:
                 frame = BBFrameParser.parse(data, offset)
                 frames.append(frame)
                 offset += BBFrameParser.HEADER_SIZE + (frame.header.dfl // 8)
-            except ValueError:
+            except ValueError as e:
+                logger.warning("解析 BBFrame 失败 (offset=%d): %s", offset, e)
                 offset += 1
 
         return frames

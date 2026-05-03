@@ -73,15 +73,15 @@ class TestBBFrameHeader:
         assert header.scrambling_mode == ScramblingMode.NO_SCRAMBLING
 
     def test_scrambling_mode_energy_dispersal(self):
-        header = self._make_header(matype_byte0=0b00_01_00_00)
+        header = self._make_header(matype_byte1=0b01_000000)
         assert header.scrambling_mode == ScramblingMode.ENERGY_DISPERAL
 
     def test_scrambling_mode_reserved_1(self):
-        header = self._make_header(matype_byte0=0b00_10_00_00)
+        header = self._make_header(matype_byte1=0b10_000000)
         assert header.scrambling_mode == ScramblingMode.RESERVED_1
 
     def test_scrambling_mode_reserved_2(self):
-        header = self._make_header(matype_byte0=0b00_11_00_00)
+        header = self._make_header(matype_byte1=0b11_000000)
         assert header.scrambling_mode == ScramblingMode.RESERVED_2
 
     def test_isi(self):
@@ -108,7 +108,7 @@ class TestBBFrameHeader:
         assert header.npd is False
 
     def test_roll_off(self):
-        header = self._make_header(matype_byte0=0b00_00_10_00)
+        header = self._make_header(matype_byte0=0b00_10_00_00)
         assert header.roll_off == 0b10
 
     def test_roll_off_zero(self):
@@ -116,12 +116,12 @@ class TestBBFrameHeader:
         assert header.roll_off == 0
 
     def test_combined_fields(self):
-        header = self._make_header(matype_byte0=0b01_10_01_01, matype_byte1=0x05)
+        header = self._make_header(matype_byte0=0b01_10_01_01, matype_byte1=0b10_000101)
         assert header.stream_type == StreamType.GSE
         assert header.scrambling_mode == ScramblingMode.RESERVED_1
-        assert header.roll_off == 0b01
+        assert header.roll_off == 0b10
         assert header.npd is True
-        assert header.isi == 0x05
+        assert header.isi == 0b10_000101
 
 
 class TestBBFrame:
