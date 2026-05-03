@@ -4,6 +4,14 @@ A Python library for parsing DVB (Digital Video Broadcasting) protocol formats, 
 
 ## Features
 
+### High-Level API (v0.4.0)
+
+- **DVBParser** - Automatic DVB protocol parser with format auto-detection
+  - Auto-detect input format (BBFrame, TS, GSE, MPE, ULE)
+  - Automatic multi-layer parsing (BBFrame → TS → PSI/SI)
+  - Fault-tolerant mode (skip corrupted packets, collect errors)
+  - Structured output with `ParseResult` object
+
 ### Core Parsers (P0)
 
 - **BBFrame Parser** - Parse DVB-S2/S2X Baseband Frame headers (MATYPE, UPL, DFL, CRC-8)
@@ -37,9 +45,42 @@ A Python library for parsing DVB (Digital Video Broadcasting) protocol formats, 
 pip install -e .
 ```
 
-## Usage
+## Quick Start
 
-### Parse BBFrame and Extract TS Packets
+### Automatic Parsing (Recommended)
+
+```python
+from dvb_parser import DVBParser
+
+# Create parser
+parser = DVBParser()
+
+# Auto-detect format and parse all layers
+result = parser.parse(raw_data)
+
+# Access results
+print(result.summary())
+print(f"Format: {result.format}")
+print(f"BBFrames: {len(result.bbframes)}")
+print(f"TS packets: {len(result.ts_packets)}")
+
+# Access PSI/SI tables
+if result.pat:
+    print(f"Programs: {result.pat.programs}")
+
+if result.sdt:
+    for service in result.sdt.services:
+        print(f"Service {service.service_id}: {service.service_name}")
+
+if result.nit:
+    print(f"Network: {result.nit.network_name}")
+    for ts in result.nit.transport_streams:
+        print(f"  Frequency: {ts.frequency} Hz")
+```
+
+### Manual Parsing (Advanced)
+
+#### Parse BBFrame and Extract TS Packets
 
 ```python
 from dvb_parser import BBFrameParser, TSPacketParser
@@ -54,7 +95,7 @@ ts_packets = TSPacketParser.parse_all(bbframe.data_field)
 print(f"TS packets: {len(ts_packets)}")
 ```
 
-### Parse PSI/SI Tables
+#### Parse PSI/SI Tables
 
 ```python
 from dvb_parser import PATParser, PMTParser, SDTParser, NITParser
@@ -79,7 +120,7 @@ for ts in nit.transport_streams:
     print(f"Frequency: {ts.frequency} Hz, Symbol rate: {ts.symbol_rate} sym/s")
 ```
 
-### Parse PES with ES Frame Headers
+#### Parse PES with ES Frame Headers
 
 ```python
 from dvb_parser import PESParser
@@ -90,7 +131,7 @@ print(f"PTS: {pes.header.pts}")
 print(f"Codec: {pes.es_frame_header.codec}")
 ```
 
-### Parse Protocol Encapsulations
+#### Parse Protocol Encapsulations
 
 ```python
 from dvb_parser import GSEParser, MPEParser, ULEParser
@@ -110,7 +151,7 @@ if sndu.is_ipv4:
     print(f"IPv4 datagram: {len(sndu.payload)} bytes")
 ```
 
-### Parse EPG Data
+#### Parse EPG Data
 
 ```python
 from dvb_parser import EITParser, TDTParser
@@ -130,19 +171,22 @@ print(f"UTC time: {tdt.utc_time}")
 The library uses a layered parser chain architecture:
 
 ```
-BBFrame Parser
-├── TS Packet Parser
-│   ├── PAT Parser
-│   ├── PMT Parser
-│   ├── SDT Parser
-│   ├── NIT Parser
-│   ├── EIT Parser
-│   ├── TDT Parser
-│   ├── PES Parser
-│   │   └── ES Frame Header Parser
-│   ├── MPE Parser
-│   └── ULE Parser
-└── GSE Parser
+DVBParser (High-Level API)
+├── Format Auto-Detection
+└── Parser Chain
+    ├── BBFrame Parser
+    │   └── TS Packet Parser
+    │       ├── PAT Parser
+    │       ├── PMT Parser
+    │       ├── SDT Parser
+    │       ├── NIT Parser
+    │       ├── EIT Parser
+    │       ├── TDT Parser
+    │       ├── PES Parser
+    │       │   └── ES Frame Header Parser
+    │       ├── MPE Parser
+    │       └── ULE Parser
+    └── GSE Parser
 ```
 
 Each parser:
@@ -156,7 +200,7 @@ Each parser:
 | Protocol | Standard | Description |
 |----------|----------|-------------|
 | BBFrame | ETSI EN 302 307-1/2 | DVB-S2/S2X Baseband Frame |
-| MPEG-TS | ISO/IEC 13818-1 | Transport Stream |
+| MPEG-TS | ISO/IEC 13818-1 | Transport Stream (188/204/208 bytes) |
 | PAT/PMT | ISO/IEC 13818-1 | Program Specific Information |
 | SDT/NIT | ETSI EN 300 468 | Service Information |
 | EIT | ETSI EN 300 468 | Event Information Table |
@@ -185,8 +229,8 @@ pytest tests/test_bbframe.py -v
 
 ## Test Coverage
 
-- **Total tests**: 141
-- **Coverage**: 89%
+- **Total tests**: 148
+- **Coverage**: 88%
 - **All tests passing**: ✅
 
 ## Project Structure
@@ -195,6 +239,8 @@ pytest tests/test_bbframe.py -v
 dvb-parser/
 ├── src/dvb_parser/
 │   ├── __init__.py          # Package exports
+│   ├── parser.py            # DVBParser high-level API
+│   ├── models.py            # ParseResult data model
 │   ├── bbframe/             # BBFrame parser
 │   ├── ts/                  # MPEG-TS parser
 │   ├── psi/                 # PSI parsers (PAT, PMT)
