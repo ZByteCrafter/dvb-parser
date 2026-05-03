@@ -46,6 +46,7 @@ class MPEParser:
         
         # 验证 CRC-32
         section_data = data[offset:offset + 3 + section_length]
+        expected_crc = 0
         if len(section_data) >= 4:
             expected_crc = struct.unpack('>I', section_data[-4:])[0]
             calculated_crc = crc32(section_data[:-4])

@@ -21,7 +21,7 @@ class MPEDatagram:
     @property
     def is_broadcast(self) -> bool:
         """是否为广播地址"""
-        return self.mac_address[0] & 0x01 == 1
+        return self.mac_address == b'\xff\xff\xff\xff\xff\xff'
     
     @property
     def is_multicast(self) -> bool:
