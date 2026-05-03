@@ -42,7 +42,27 @@ class ULEParser:
             current_offset += 6
 
         # 解析扩展头（如果有）
+        # Type 模式下，bit 0 为 Extension Present 标志
         extension_headers: List[bytes] = []
+        has_extension = length_or_type >= 1536 and (length_or_type & 0x01) != 0
+        if has_extension:
+            # 扩展头链: [type(1)][length(1)][data(length)] ... 直到 type==0x00
+            while current_offset < len(data):
+                ext_type = data[current_offset]
+                current_offset += 1
+                if ext_type == 0x00:
+                    break
+                if current_offset >= len(data):
+                    raise ValueError("扩展头数据不足")
+                ext_length = data[current_offset]
+                current_offset += 1
+                if current_offset + ext_length > len(data):
+                    raise ValueError("扩展头数据不足")
+                ext_data = data[current_offset:current_offset + ext_length]
+                current_offset += ext_length
+                extension_headers.append(bytes([ext_type, ext_length]) + ext_data)
+            # 清除 Extension Present 位，存储实际协议类型
+            length_or_type &= 0xFFFE
 
         # 提取 payload
         # 对于 Type 模式，payload 延伸到 CRC-32 之前
