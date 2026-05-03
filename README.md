@@ -229,8 +229,8 @@ pytest tests/test_bbframe.py -v
 
 ## Test Coverage
 
-- **Total tests**: 148
-- **Coverage**: 88%
+- **Total tests**: 152
+- **Coverage**: 85%
 - **All tests passing**: ✅
 
 ## Project Structure
