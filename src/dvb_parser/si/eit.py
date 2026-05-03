@@ -28,12 +28,12 @@ class EITParser:
             ValueError: CRC-32 check failure or invalid data
         """
         if len(data) - offset < 14:
-            raise ValueError("Insufficient data")
+            raise ValueError("数据不足")
 
         # Parse header
         table_id = data[offset]
         if table_id < 0x4E or table_id > 0x6F:
-            raise ValueError("Not an EIT table")
+            raise ValueError("不是 EIT 表")
 
         # Section syntax indicator and length
         syntax_length = struct.unpack('>H', data[offset + 1:offset + 3])[0]
@@ -130,7 +130,7 @@ class EITParser:
             expected_crc = struct.unpack('>I', section_data[-4:])[0]
             calculated_crc = crc32(section_data[:-4])
             if expected_crc != calculated_crc:
-                raise ValueError("CRC-32 check failed")
+                raise ValueError("CRC-32 校验失败")
 
         return EIT(
             table_id=table_id,

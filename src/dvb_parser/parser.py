@@ -71,11 +71,11 @@ class DVBParser:
             if crc8(data[:9]) == data[9]:
                 return "bbframe"
 
-        if len(data) >= 6:
-            first_byte = data[0]
-            label_type = (first_byte >> 4) & 0x03
-            if label_type <= 2:
-                return "gse"
+        # len(data) >= 6 is guaranteed by the check above
+        first_byte = data[0]
+        label_type = (first_byte >> 4) & 0x03
+        if label_type <= 2:
+            return "gse"
 
         if data[0] == 0x3E:
             return "mpe"

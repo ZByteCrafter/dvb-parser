@@ -58,7 +58,7 @@ class PMTParser:
         info_length = struct.unpack('>H', data[offset + 10:offset + 12])[0] & 0x03FF
         
         # Parse program-level descriptors
-        descriptors = []
+        program_descriptors = []
         desc_offset = offset + 12
         desc_end = desc_offset + info_length
         
@@ -66,7 +66,7 @@ class PMTParser:
             desc_tag = data[desc_offset]
             desc_length = data[desc_offset + 1]
             desc_data = data[desc_offset:desc_offset + 2 + desc_length]
-            descriptors.append(desc_data)
+            program_descriptors.append(desc_data)
             desc_offset += 2 + desc_length
         
         # Skip program descriptors
@@ -85,7 +85,7 @@ class PMTParser:
             es_info_length = struct.unpack('>H', data[current_offset + 3:current_offset + 5])[0] & 0x03FF
             
             # Parse ES descriptors
-            descriptors = []
+            es_descriptors = []
             desc_end = current_offset + 5 + es_info_length
             desc_offset = current_offset + 5
             
@@ -93,13 +93,13 @@ class PMTParser:
                 desc_tag = data[desc_offset]
                 desc_length = data[desc_offset + 1]
                 desc_data = data[desc_offset:desc_offset + 2 + desc_length]
-                descriptors.append(desc_data)
+                es_descriptors.append(desc_data)
                 desc_offset += 2 + desc_length
             
             streams.append(PMTStream(
                 stream_type=stream_type,
                 pid=pid,
-                descriptors=descriptors
+                descriptors=es_descriptors
             ))
             
             current_offset = desc_end
@@ -121,6 +121,6 @@ class PMTParser:
             last_section_number=last_section_number,
             program_number=program_number,
             pcr_pid=pcr_pid,
-            descriptors=descriptors,  # Program-level descriptors
+            descriptors=program_descriptors,  # Program-level descriptors
             streams=streams
         )
