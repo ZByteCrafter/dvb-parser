@@ -224,3 +224,95 @@ class TestIntegrationP2:
 
         assert eit.service_id == 1  # 对应 SDT.service_id
         assert len(eit.events) == 1
+
+
+from dvb_parser.parser import DVBParser
+
+
+class TestDVBParserIntegration:
+    def test_full_bbframe_to_si(self):
+        """测试完整的 BBFrame → TS → SI 解析链"""
+        from dvb_parser.bbframe.parser import BBFrameParser
+        from dvb_parser.utils.crc import crc8, crc32
+
+        # 构造包含 PAT 的 BBFrame
+        bb_header = bytes([
+            0b00000000, 0b00000000,  # MATYPE (TS mode)
+            0x00, 0xBC,              # UPL (188 bytes)
+            0x06, 0x18,              # DFL (1560 bits = 195 bytes)
+            0x00,                    # SYNC
+            0x00, 0x00,              # SYNCD
+            0x00                     # CRC-8 placeholder
+        ])
+        crc_value = crc8(bb_header[:9])
+        bb_header = bb_header[:9] + bytes([crc_value])
+
+        # TS packet with PAT
+        ts_header = bytes([0x47, 0b00000000, 0x00, 0b00010000])
+
+        # PAT payload
+        pat_data = bytes([
+            0x00,                    # table_id
+            0b10110000, 0x0D,        # syntax_indicator=1, length=13
+            0x00, 0x01,              # transport_stream_id
+            0b11000001,              # version=1, current_next=1
+            0x00,                    # section_number
+            0x00,                    # last_section_number
+            0x00, 0x01,              # program_number=1
+            0b11100001, 0x00,        # PID=0x100
+        ])
+        crc_value = crc32(pat_data)
+        pat_data = pat_data + crc_value.to_bytes(4, 'big')
+
+        # Pad TS payload
+        ts_payload = pat_data + bytes([0xFF] * (184 - len(pat_data)))
+        ts_packet = ts_header + ts_payload
+
+        # Fill BBFrame data field
+        ts_data = ts_packet * (195 // 188 + 1)
+        ts_data = ts_data[:195]
+
+        bbframe_data = bb_header + ts_data
+
+        # 使用 DVBParser 自动解析
+        parser = DVBParser()
+        result = parser.parse(bbframe_data)
+
+        assert result.format == "bbframe"
+        assert len(result.bbframes) == 1
+        assert len(result.ts_packets) > 0
+        assert result.pat is not None
+        assert 1 in result.pat.programs
+        assert result.pat.programs[1] == 0x100
+
+    def test_ts_with_pat(self):
+        """测试 TS 格式自动解析 PAT"""
+        from dvb_parser.utils.crc import crc32
+
+        # 构造包含 PAT 的 TS 数据
+        ts_header = bytes([0x47, 0b00000000, 0x00, 0b00010000])
+
+        pat_data = bytes([
+            0x00,                    # table_id
+            0b10110000, 0x0D,        # syntax_indicator=1, length=13
+            0x00, 0x01,              # transport_stream_id
+            0b11000001,              # version=1, current_next=1
+            0x00,                    # section_number
+            0x00,                    # last_section_number
+            0x00, 0x01,              # program_number=1
+            0b11100001, 0x00,        # PID=0x100
+        ])
+        crc_value = crc32(pat_data)
+        pat_data = pat_data + crc_value.to_bytes(4, 'big')
+
+        ts_payload = pat_data + bytes([0xFF] * (184 - len(pat_data)))
+        ts_data = ts_header + ts_payload
+
+        # 使用 DVBParser 自动解析
+        parser = DVBParser()
+        result = parser.parse(ts_data)
+
+        assert result.format == "ts"
+        assert len(result.ts_packets) == 1
+        assert result.pat is not None
+        assert 1 in result.pat.programs
