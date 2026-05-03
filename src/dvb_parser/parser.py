@@ -110,17 +110,24 @@ class DVBParser:
 
             for ts in ts_packets:
                 try:
+                    # PSI sections in TS packets have a pointer_field byte
+                    # before the section data. Skip it to get section data.
+                    psi_offset = 0
+                    if ts.payload and len(ts.payload) > 0:
+                        pointer_field = ts.payload[0]
+                        psi_offset = 1 + pointer_field
+
                     if ts.pid == 0x0000:  # PAT
-                        result.pat = PATParser.parse(ts.payload)
+                        result.pat = PATParser.parse(ts.payload, offset=psi_offset)
                         for entry in result.pat.entries:
                             if entry.program_number != 0:
                                 pmt_pids.add(entry.pid)
                     elif ts.pid == 0x0011:  # SDT
-                        result.sdt = SDTParser.parse(ts.payload)
+                        result.sdt = SDTParser.parse(ts.payload, offset=psi_offset)
                     elif ts.pid == 0x0010:  # NIT
-                        result.nit = NITParser.parse(ts.payload)
+                        result.nit = NITParser.parse(ts.payload, offset=psi_offset)
                     elif ts.pid in pmt_pids:  # PMT
-                        pmt = PMTParser.parse(ts.payload)
+                        pmt = PMTParser.parse(ts.payload, offset=psi_offset)
                         result.pmts[pmt.program_number] = pmt
                         for stream in pmt.streams:
                             pes_pids.add(stream.pid)

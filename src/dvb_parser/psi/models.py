@@ -17,6 +17,7 @@ class PATEntry:
 class PAT:
     """Program Association Table"""
     table_id: int
+    transport_stream_id: int
     version_number: int
     current_next_indicator: bool
     section_number: int

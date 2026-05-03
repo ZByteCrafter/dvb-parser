@@ -44,8 +44,8 @@ class TestIntegration:
         crc_value = crc32(pat_data)
         pat_data = pat_data + crc_value.to_bytes(4, 'big')
 
-        # Pad TS payload
-        ts_payload = pat_data + bytes([0xFF] * (184 - len(pat_data)))
+        # TS payload: pointer_field (0x00) + PAT data + padding
+        ts_payload = bytes([0x00]) + pat_data + bytes([0xFF] * (183 - len(pat_data)))
         ts_packet = ts_header + ts_payload
 
         # Repeat TS packet to fill BBFrame data field
@@ -63,7 +63,7 @@ class TestIntegration:
         assert len(ts_packets) > 0
         assert ts_packets[0].pid == 0x0000
 
-        pat = PATParser.parse(ts_packets[0].payload)
+        pat = PATParser.parse(ts_packets[0].payload, offset=1)
         assert 1 in pat.programs
         assert pat.programs[1] == 0x100
 
@@ -264,8 +264,8 @@ class TestDVBParserIntegration:
         crc_value = crc32(pat_data)
         pat_data = pat_data + crc_value.to_bytes(4, 'big')
 
-        # Pad TS payload
-        ts_payload = pat_data + bytes([0xFF] * (184 - len(pat_data)))
+        # TS payload: pointer_field (0x00) + PAT data + padding
+        ts_payload = bytes([0x00]) + pat_data + bytes([0xFF] * (183 - len(pat_data)))
         ts_packet = ts_header + ts_payload
 
         # Fill BBFrame data field
@@ -305,7 +305,7 @@ class TestDVBParserIntegration:
         crc_value = crc32(pat_data)
         pat_data = pat_data + crc_value.to_bytes(4, 'big')
 
-        ts_payload = pat_data + bytes([0xFF] * (184 - len(pat_data)))
+        ts_payload = bytes([0x00]) + pat_data + bytes([0xFF] * (183 - len(pat_data)))
         ts_data = ts_header + ts_payload
 
         # 使用 DVBParser 自动解析

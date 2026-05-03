@@ -28,6 +28,7 @@ class TestPAT:
             ]
         return PAT(
             table_id=0x00,
+            transport_stream_id=0x0001,
             version_number=1,
             current_next_indicator=True,
             section_number=0,

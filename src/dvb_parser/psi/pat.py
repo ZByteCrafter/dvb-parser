@@ -80,6 +80,7 @@ class PATParser:
 
         return PAT(
             table_id=table_id,
+            transport_stream_id=ts_id,
             version_number=version_number,
             current_next_indicator=current_next_indicator,
             section_number=section_number,
