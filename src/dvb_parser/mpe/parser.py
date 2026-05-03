@@ -26,7 +26,7 @@ class MPEParser:
         Raises:
             ValueError: CRC-32 校验失败或数据无效
         """
-        if len(data) - offset < 12:
+        if len(data) - offset < 13:
             raise ValueError("数据不足")
         
         # 解析表头
@@ -37,6 +37,10 @@ class MPEParser:
         # Section syntax indicator 和 length
         syntax_length = struct.unpack('>H', data[offset + 1:offset + 3])[0]
         section_length = syntax_length & 0x0FFF
+        
+        # 验证 section 数据完整性
+        if offset + 3 + section_length > len(data):
+            raise ValueError("section 数据不完整")
         
         # MAC 地址
         mac_address = data[offset + 3:offset + 9]

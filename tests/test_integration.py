@@ -74,8 +74,8 @@ from dvb_parser.pes.parser import PESParser
 
 
 class TestIntegrationP1:
-    def test_sdt_with_pmt(self):
-        """测试 SDT 与 PMT 关联"""
+    def test_sdt_service_descriptor(self):
+        """测试 SDT 服务描述符解析"""
         # 构造 SDT 数据
         # SDT section layout:
         #   bytes 0-2:   table_id + syntax_indicator + section_length
@@ -203,7 +203,7 @@ class TestIntegrationP2:
         """测试 EIT 与 SDT 关联（事件对应节目）"""
         # 构造 EIT 数据
         eit_data = bytes([
-            0x4E, 0b10110000, 0x1A,
+            0x4E, 0b10110000, 0x19,  # section_length=25
             0x00, 0x01,  # service_id=1
             0b11000001,  # version=1
             0x00, 0x01, 0x00, 0x01,  # ts_id, original_network_id
@@ -212,7 +212,7 @@ class TestIntegrationP2:
             0x58, 0x00,  # MJD
             0x12, 0x00, 0x00,  # 12:00:00
             0x01, 0x30, 0x00,  # 1h30m
-            0b00000001, 0x00, 0x00,
+            0x00, 0x00,  # running_status=0, free_ca=0, desc_length=0
             0x00, 0x00, 0x00, 0x00  # CRC-32
         ])
 

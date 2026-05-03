@@ -70,6 +70,8 @@ class NITParser:
 
         # 解析传输流列表
         transport_streams = []
+        if desc_end + 2 > len(data):
+            raise ValueError("数据不足，无法读取 ts_loop_length")
         ts_loop_length = struct.unpack('>H', data[desc_end:desc_end + 2])[0] & 0x0FFF
 
         current_offset = desc_end + 2

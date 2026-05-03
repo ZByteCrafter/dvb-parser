@@ -57,6 +57,18 @@ class PMTParser:
         # Program info length
         info_length = struct.unpack('>H', data[offset + 10:offset + 12])[0] & 0x03FF
         
+        # Parse program-level descriptors
+        descriptors = []
+        desc_offset = offset + 12
+        desc_end = desc_offset + info_length
+        
+        while desc_offset < desc_end and desc_offset + 2 <= len(data):
+            desc_tag = data[desc_offset]
+            desc_length = data[desc_offset + 1]
+            desc_data = data[desc_offset:desc_offset + 2 + desc_length]
+            descriptors.append(desc_data)
+            desc_offset += 2 + desc_length
+        
         # Skip program descriptors
         current_offset = offset + 12 + info_length
         
@@ -108,6 +120,6 @@ class PMTParser:
             last_section_number=last_section_number,
             program_number=program_number,
             pcr_pid=pcr_pid,
-            descriptors=[],  # Program-level descriptors
+            descriptors=descriptors,  # Program-level descriptors
             streams=streams
         )

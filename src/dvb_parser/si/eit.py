@@ -98,7 +98,7 @@ class EITParser:
                 descriptors.append(desc_data)
 
                 # Parse short event descriptor (tag 0x4D)
-                if desc_tag == 0x4D and desc_length >= 4:
+                if desc_tag == 0x4D and desc_length >= 4 and desc_offset + 6 <= len(data):
                     language = data[desc_offset + 2:desc_offset + 5].decode('ascii', errors='replace')
                     name_length = data[desc_offset + 5]
                     if desc_offset + 6 + name_length <= desc_end:
