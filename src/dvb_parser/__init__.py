@@ -2,7 +2,10 @@
 DVB Parser - DVB protocol parser for satellite signal analysis
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
+
+from dvb_parser.parser import DVBParser
+from dvb_parser.models import ParseResult
 
 from dvb_parser.bbframe.parser import BBFrameParser
 from dvb_parser.bbframe.models import BBFrame, BBFrameHeader, StreamType
@@ -35,6 +38,9 @@ from dvb_parser.nip.parser import NIPParser
 from dvb_parser.nip.models import NIPDataUnit, NIPStreaming, NIPCarousel
 
 __all__ = [
+    # High-level API
+    "DVBParser",
+    "ParseResult",
     # BBFrame
     "BBFrameParser",
     "BBFrame",
